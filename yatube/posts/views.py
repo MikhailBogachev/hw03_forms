@@ -12,6 +12,7 @@ User = get_user_model()
 
 NUM_POST_FOR_PAGE: int = 10
 
+
 def index(request):
     """Вью для отображения главной страницы с публикациями"""
     template: str = 'posts/index.html'
@@ -68,7 +69,7 @@ def post_detail(request, post_id):
         'post': post,
         'post_count': post_count
     }
-    return render(request, template, context) 
+    return render(request, template, context)
 
 
 @login_required
@@ -79,8 +80,13 @@ def post_create(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect(f'/profile/{post.author}/', {'form': form})
-    return render(request, 'posts/create_post.html', {'form': form, 'group': group})
+        return redirect(f'/profile/{post.author}/', {
+            'form': form
+        })
+    return render(request, 'posts/create_post.html', {
+        'form': form,
+        'group': group
+    })
 
 
 @login_required
