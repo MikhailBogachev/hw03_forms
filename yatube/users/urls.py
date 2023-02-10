@@ -24,8 +24,7 @@ urlpatterns = [
     ),
     path(
         'password_change/',
-        PasswordChangeView.as_view(
-            template_name='users/password_change_form.html'),
+        PasswordChangeView.as_view(),
         name='change_pass'
     ),
     path(
