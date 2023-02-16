@@ -13,14 +13,15 @@ class StaticURLTests(TestCase):
         cls.user = User.objects.create(
             username='User'
         )
-        cls.post = Post.objects.create(
-            text='Текст поста',
-            author=cls.user
-        )
         cls.group = Group.objects.create(
-            title='Нзвание группы',
+            title='Название группы',
             slug='test-slug',
             description='Описание группы'
+        )
+        cls.post = Post.objects.create(
+            text='Текст поста',
+            author=cls.user,
+            group=cls.group
         )
 
     def setUp(self):
@@ -39,7 +40,7 @@ class StaticURLTests(TestCase):
                 reverse('posts:index')
             ),
             'posts/group_list.html': (
-                reverse('posts:group_posts', kwargs={'slug': 'test-slug'})
+                reverse('posts:group_list', kwargs={'slug': 'test-slug'})
             ),
             'posts/profile.html': (
                 reverse('posts:profile', kwargs={'username': 'User'})
@@ -59,3 +60,40 @@ class StaticURLTests(TestCase):
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template) 
+
+    def test_index_page_correct_context(self):
+        """Шаблон index сформирован с правильным контекстом"""
+        response = self.authorized_client.get(reverse('posts:index'))
+        first_object = response.context['page_obj'][0]
+        task_text = first_object.text
+        task_author = first_object.author.username
+        task_group = first_object.group.title
+
+        self.assertEqual(task_text, 'Текст поста')
+        self.assertEqual(task_author, 'User')
+        self.assertEqual(task_group, 'Название группы')
+
+    
+    def test_group_page_correct_context(self):
+        """Шаблон group_list сформирован с правильным контекстом"""
+        response = self.authorized_client.get(
+            reverse('posts:group_list', kwargs={'slug': 'test-slug'})
+        )
+        first_object = response.context['page_obj'][0]
+        group_object = response.context['group']
+
+        task_post_text = first_object.text
+        task_post_author = first_object.author.username
+        task_post_group = first_object.group.title
+        task_group_title = group_object.title
+        task_group_slug = group_object.slug
+        task_group_description = group_object.description
+
+        self.assertEqual(task_post_text, 'Текст поста')
+        self.assertEqual(task_post_author, 'User')
+        self.assertEqual(task_post_group, 'Название группы')
+        self.assertEqual(task_group_title, 'Название группы')
+        self.assertEqual(task_group_slug, 'test-slug')
+        self.assertEqual(task_group_description, 'Описание группы')       
+
+    
